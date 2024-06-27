@@ -56,20 +56,11 @@ const Articulos = () => {
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label for="tipo" class="block text-gray-700">Tipo</label>
-              <select id="tipo" name="tipo" class="w-full px-3 py-2 border rounded" >
-                <option value="Producto">Producto</option>
-                <option value="Mano de obra">Mano de obra</option>
-              </select>
-            </div>
-            <div>
               <label for="precio_compra" class="block text-gray-700">Precio de Compra</label>
               <input type="number" id="precio_compra" name="precio_compra" class="w-full px-3 py-2 border rounded" value="${
                 articulo ? articulo.precio_compra : ""
               }">
             </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label for="precio_venta" class="block text-gray-700">Precio de Venta</label>
               <input type="number" id="precio_venta" name="precio_venta" class="w-full px-3 py-2 border rounded" value="${
@@ -83,12 +74,11 @@ const Articulos = () => {
         const form = document.getElementById("productForm");
         const codigo = form.codigo.value;
         const nombre = form.nombre.value;
-        const tipo = form.tipo.value;
         const precio_compra = form.precio_compra.value;
         const precio_venta = form.precio_venta.value;
-        if (!codigo || !nombre || !tipo || !precio_compra || !precio_venta) {
+        if (!codigo || !nombre || !precio_compra || !precio_venta) {
           MySwal.showValidationMessage(
-            "Por favor completa todos los campos, los unicos que no son obligatorios son imagen y descripcion"
+            "Por favor completa todos los campos, los únicos que no son obligatorios son imagen y descripción"
           );
           return false;
         }
@@ -97,7 +87,6 @@ const Articulos = () => {
         formData.append("nombre", nombre);
         formData.append("imagen", form.imagen.files[0]);
         formData.append("descripcion", form.descripcion.value);
-        formData.append("tipo", tipo);
         formData.append("precio_compra", precio_compra);
         formData.append("precio_venta", precio_venta);
         if (isEdit) {
@@ -165,6 +154,14 @@ const Articulos = () => {
     console.log(searchTerm);
   };
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
+
   return (
     <>
       <div className="max-w-6xl mx-auto py-8 px-4">
@@ -217,12 +214,11 @@ const Articulos = () => {
                     Codigo: {articulo.codigo}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Precio venta: ${articulo.precio_venta}
+                    Precio venta: {formatCurrency(articulo.precio_venta)}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Precio Compra: ${articulo.precio_compra}
+                    Precio compra: {formatCurrency(articulo.precio_compra)}
                   </p>
-                  <p className="text-sm text-gray-600">Tipo: {articulo.tipo}</p>
                 </div>
               </div>
             ))}

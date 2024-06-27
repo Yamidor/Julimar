@@ -9,8 +9,8 @@ export async function PUT(request, { params }) {
     const id = formData.get("id");
     const codigo = formData.get("codigo");
     const nombre = formData.get("nombre");
+    const tipo = "Producto";
     const descripcion = formData.get("descripcion");
-    const tipo = formData.get("tipo");
     const precio_compra = parseFloat(formData.get("precio_compra"));
     const precio_venta = parseFloat(formData.get("precio_venta"));
 
@@ -50,7 +50,7 @@ export async function PUT(request, { params }) {
         codigo,
         nombre,
         descripcion,
-        tipo,
+        tipo: "Producto",
         precio_compra,
         precio_venta,
         imagen,

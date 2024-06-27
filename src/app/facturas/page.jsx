@@ -151,10 +151,7 @@ const Factura = () => {
   };
 
   const calcularImpuesto = () => {
-    if (cliente.tipo_cliente !== "Normal") {
-      return calcularSubTotal() * 0.07;
-    }
-    return 0;
+    return cliente.tipo_cliente === "Normal" ? 0 : calcularSubTotal() * 0.19;
   };
 
   const calcularTotal = () => {
@@ -167,6 +164,14 @@ const Factura = () => {
       return false;
     }
     return true;
+  };
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(value);
   };
 
   const generarPDF = () => {
@@ -183,12 +188,12 @@ const Factura = () => {
     };
 
     centerText(
-      "Taller Moto Repuestos RC, Dirección: Calle Falsa 123, Contacto: 555-555-555",
+      "Julimar P&G Dirección Calle 27a # 23-14 barrio Montesol la ceja Contacto: 3124872382 Correo: Maluxijutienda@gmail.com",
       10,
       9
     );
     centerText(
-      `Factura: ${numeroFactura}, Cliente: ${cliente.nombre_cliente}, DNI: ${cliente.dni_cliente}, Tipo Cliente: ${cliente.tipo_cliente}`,
+      `Factura: ${numeroFactura}, Cliente: ${cliente.nombre_cliente}, DNI: ${cliente.dni_cliente}`,
       15,
       9
     );
@@ -200,17 +205,25 @@ const Factura = () => {
         item.codigo,
         item.nombre,
         item.cantidad,
-        `$${Number(item.precio_venta).toFixed(2)}`,
-        `$${Number(item.total).toFixed(2)}`,
+        formatCurrency(item.precio_venta),
+        formatCurrency(item.total),
       ]),
     });
 
     const finalY = doc.autoTable.previous.finalY;
 
     doc.setFontSize(10);
-    doc.text(`Sub-Total: $${calcularSubTotal().toFixed(2)}`, 15, finalY + 10);
-    doc.text(`Impuesto: $${calcularImpuesto().toFixed(2)}`, 15, finalY + 20);
-    doc.text(`Total: $${calcularTotal().toFixed(2)}`, 15, finalY + 30);
+    doc.text(
+      `Sub-Total: ${formatCurrency(calcularSubTotal())}`,
+      15,
+      finalY + 10
+    );
+    doc.text(
+      `Impuesto: ${formatCurrency(calcularImpuesto())}`,
+      15,
+      finalY + 20
+    );
+    doc.text(`Total: ${formatCurrency(calcularTotal())}`, 15, finalY + 30);
 
     doc.save("factura.pdf");
   };
@@ -287,8 +300,8 @@ const Factura = () => {
           </div>
         </div>
         <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Datos del Cliente</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <h2 className="text-xl font-bold">Cliente</h2>
+          <div className="flex space-x-4">
             <input
               type="text"
               className="border text-black border-gray-300 px-3 py-2"
@@ -335,8 +348,7 @@ const Factura = () => {
                       alt={producto.nombre}
                       className="w-10 h-10 rounded-full mr-2"
                     />
-                    {producto.nombre} - $
-                    {Number(producto.precio_venta).toFixed(2)}
+                    {producto.nombre} - {formatCurrency(producto.precio_venta)}
                   </span>
                   <button
                     onClick={() => agregarProducto(producto)}
@@ -383,23 +395,21 @@ const Factura = () => {
                       </div>
                     </td>
                     <td className="border p-2">
-                      ${Number(item.precio_venta).toFixed(2)}
+                      {formatCurrency(item.precio_venta)}
                     </td>
-                    <td className="border p-2">
-                      ${Number(item.total).toFixed(2)}
-                    </td>
+                    <td className="border p-2">{formatCurrency(item.total)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <h3 className="mt-4 text-lg font-bold">
-              Sub-Total: ${Number(calcularSubTotal()).toFixed(2)}
+              Sub-Total: {formatCurrency(calcularSubTotal())}
             </h3>
             <h3 className="mt-4 text-lg font-bold">
-              Impuesto: ${Number(calcularImpuesto()).toFixed(2)}
+              Impuesto: {formatCurrency(calcularImpuesto())}
             </h3>
             <h3 className="mt-4 text-lg font-bold">
-              Total: ${Number(calcularTotal()).toFixed(2)}
+              Total: {formatCurrency(calcularTotal())}
             </h3>
             <div className="flex">
               <button

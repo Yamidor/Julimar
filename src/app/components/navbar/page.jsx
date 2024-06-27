@@ -36,6 +36,22 @@ const Navbar = ({ children }) => {
             Stock
           </Link>
         </li>
+        <li>
+          <Link
+            className="text-white hover:text-black hover:bg-white p-3 rounded-lg"
+            href="/balance"
+          >
+            Balance
+          </Link>
+        </li>
+        <li>
+          <Link
+            className="text-white hover:text-black hover:bg-white p-3 rounded-lg"
+            href="/historiales"
+          >
+            Imprimir Facturas
+          </Link>
+        </li>
       </ul>
     </nav>
   );
