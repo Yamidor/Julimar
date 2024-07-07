@@ -25,21 +25,21 @@ ChartJS.register(
 );
 
 const Balance = () => {
-  const [compras, setCompras] = useState([]);
+  const [inventario, setInventario] = useState([]);
   const [ventas, setVentas] = useState([]);
   const [fechaInicio, setFechaInicio] = useState(new Date());
   const [fechaFin, setFechaFin] = useState(new Date());
 
   useEffect(() => {
-    fetchCompras();
+    fetchInventario();
     fetchVentas();
   }, []);
 
-  const fetchCompras = async () => {
-    await fetch("/api/compras")
+  const fetchInventario = async () => {
+    await fetch("/api/inventarios")
       .then((response) => response.json())
-      .then((data) => setCompras(data))
-      .catch((error) => console.error("Error fetching compras:", error));
+      .then((data) => setInventario(data))
+      .catch((error) => console.error("Error fetching inventarios:", error));
   };
 
   const fetchVentas = () => {
@@ -58,31 +58,28 @@ const Balance = () => {
     });
   };
 
-  const comprasFiltradas = filtrarPorFecha(compras);
   const ventasFiltradas = filtrarPorFecha(ventas);
 
   const calcularInventario = () => {
-    const inventario = comprasFiltradas.reduce((acc, compra) => {
-      acc[compra.articulo.codigo] =
-        (acc[compra.articulo.codigo] || 0) +
-        compra.cantidad * compra.valor_unidad;
-      return acc;
-    }, {});
+    const inventarioActualizado = inventario.map((item) => {
+      const valorTotal = item.unidades * item.articulo.precio_compra;
+      const cantidadRestante = item.unidades;
 
-    ventasFiltradas.forEach((venta) => {
-      inventario[venta.articulo.codigo] =
-        (inventario[venta.articulo.codigo] || 0) -
-        venta.cantidad * venta.precio_compra;
+      return {
+        ...item,
+        cantidadRestante,
+        valorTotal,
+      };
     });
 
-    return inventario;
+    return inventarioActualizado;
   };
 
   const calcularGanancias = () => {
     const gananciasPorArticulo = ventasFiltradas.reduce((acc, venta) => {
       const key = venta.articulo.codigo;
-      const compra = compras.find((compra) => compra.articulo.codigo === key);
-      const precioCompra = compra ? compra.total / compra.cantidad : 0;
+      const compra = inventario.find((item) => item.articulo.codigo === key);
+      const precioCompra = compra ? compra.articulo.precio_compra : 0;
       const ganancia = (venta.precio_venta - precioCompra) * venta.cantidad;
 
       if (!acc[key]) {
@@ -107,7 +104,7 @@ const Balance = () => {
   };
 
   const { totalGanancias, gananciasPorArticulo } = calcularGanancias();
-  const inventario = calcularInventario();
+  const inventarioActualizado = calcularInventario();
 
   const formatearPesos = (valor) => {
     const num = Number(valor);
@@ -149,20 +146,21 @@ const Balance = () => {
     );
 
     doc.autoTable({
-      head: [["Código", "Nombre", "Cantidad en Inventario"]],
-      body: Object.entries(inventario).map(([codigo, valorInventario]) => {
-        const compra = compras.find(
-          (compra) => compra.articulo.codigo === codigo
-        );
-        const nombre = compra ? compra.articulo.nombre : "Desconocido";
-        return [codigo, nombre, formatearPesos(valorInventario)];
-      }),
+      head: [["Código", "Nombre", "Cantidad", "Valor"]],
+      body: inventarioActualizado.map(
+        ({ articulo, cantidadRestante, valorTotal }) => [
+          articulo.codigo,
+          articulo.nombre,
+          cantidadRestante,
+          formatearPesos(valorTotal),
+        ]
+      ),
       startY: doc.previousAutoTable.finalY + 30,
     });
 
     doc.text(
       `Valor Inventario: ${formatearPesos(
-        Object.values(inventario).reduce((a, b) => a + b, 0)
+        inventarioActualizado.reduce((a, b) => a + b.valorTotal, 0)
       )}`,
       14,
       doc.previousAutoTable.finalY + 40
@@ -176,7 +174,7 @@ const Balance = () => {
     datasets: [
       {
         data: [
-          Object.values(inventario).reduce((a, b) => a + b, 0),
+          inventarioActualizado.reduce((a, b) => a + b.valorTotal, 0),
           ventasFiltradas.reduce(
             (total, item) => total + item.precio_venta * item.cantidad,
             0
@@ -192,6 +190,7 @@ const Balance = () => {
     responsive: true,
     maintainAspectRatio: false,
   };
+
   return (
     <div className="container mx-auto p-4 flex flex-col items-center">
       <h1 className="text-2xl font-bold mb-4">Balance de Ventas y Ganancias</h1>
