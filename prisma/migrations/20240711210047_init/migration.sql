@@ -10,6 +10,7 @@ CREATE TABLE "Inventario" (
 CREATE TABLE "Articulo" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "codigo" TEXT NOT NULL,
+    "codigo_barras" TEXT NOT NULL,
     "nombre" TEXT NOT NULL,
     "imagen" TEXT,
     "descripcion" TEXT,
@@ -62,3 +63,6 @@ CREATE UNIQUE INDEX "Inventario_articuloId_key" ON "Inventario"("articuloId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Articulo_codigo_key" ON "Articulo"("codigo");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Articulo_codigo_barras_key" ON "Articulo"("codigo_barras");

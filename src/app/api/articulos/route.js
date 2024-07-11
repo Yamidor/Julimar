@@ -15,12 +15,13 @@ export async function POST(request) {
   try {
     const formData = await request.formData();
     // Obtener los datos del formulario
-    const codigo = formData.get("codigo");
+    let codigo = formData.get("codigo");
     const nombre = formData.get("nombre");
     const tipo = "Producto";
     const descripcion = formData.get("descripcion");
     const precio_compra = parseFloat(formData.get("precio_compra"));
     const precio_venta = parseFloat(formData.get("precio_venta"));
+    const codigo_barras = formData.get("codigo_barras");
 
     const imagenFile = formData.get("imagen");
 
@@ -34,13 +35,14 @@ export async function POST(request) {
         imagen = "/uploads/manodeobra.png";
       }
     }
+
     if (!codigo || !nombre || !tipo || !precio_compra || !precio_venta) {
       return NextResponse.json({
         error: "Todos los campos excepto imagen y descripción son obligatorios",
       });
     }
 
-    // Guardar la foto
+    // Guardar la foto si se proporcionó una imagen
     if (imagenFile && imagenFile.size > 0) {
       const reader = imagenFile.stream().getReader();
       const writer = fs.createWriteStream(`public${imagen}`);
@@ -65,6 +67,7 @@ export async function POST(request) {
         tipo,
         precio_compra,
         precio_venta,
+        codigo_barras,
       },
     });
 
@@ -75,7 +78,7 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json({ success: true, articulo, inventario });
+    return NextResponse.json({ success: true, articulo });
   } catch (error) {
     return NextResponse.json({ error: error.message });
   }

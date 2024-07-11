@@ -3,12 +3,14 @@ import React, { useState, useEffect } from "react";
 import { Toaster, toast } from "sonner";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import BarcodeReader from "react-barcode-reader";
 const MySwal = withReactContent(Swal);
 
 const Articulos = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [articulos, setArticulos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [barcode, setBarcode] = useState("");
   const articulosPerPage = 8;
 
   const getNextCodigo = () => {
@@ -16,6 +18,19 @@ const Articulos = () => {
     const lastCodigo = articulos[articulos.length - 1].codigo;
     const number = parseInt(lastCodigo.split("-")[1]) + 1;
     return `PRO-${number.toString().padStart(4, "0")}`;
+  };
+
+  const handleBarcodeScan = (scannedBarcode) => {
+    const articulo = articulos.find(
+      (art) => art.codigo_barras === scannedBarcode
+    );
+    if (articulo) {
+      setBarcode(scannedBarcode);
+      addOrEditArticulo(articulo);
+    } else {
+      setBarcode(scannedBarcode);
+      addOrEditArticulo({ codigo_barras: scannedBarcode });
+    }
   };
 
   const addOrEditArticulo = (articulo = null) => {
@@ -68,6 +83,14 @@ const Articulos = () => {
               }">
             </div>
           </div>
+          <div>
+            <label for="codigo_barras" class="block text-gray-700">Código de Barras</label>
+            <input type="text" id="codigo_barras" name="codigo_barras" class="w-full px-3 py-2 border rounded" value="${
+              articulo && articulo.codigo_barras
+                ? articulo.codigo_barras
+                : nextCodigo
+            }" readonly>
+          </div>
         </form>
       `,
       preConfirm: () => {
@@ -76,6 +99,7 @@ const Articulos = () => {
         const nombre = form.nombre.value;
         const precio_compra = form.precio_compra.value;
         const precio_venta = form.precio_venta.value;
+        const codigo_barras = form.codigo_barras.value;
         if (!codigo || !nombre || !precio_compra || !precio_venta) {
           MySwal.showValidationMessage(
             "Por favor completa todos los campos, los únicos que no son obligatorios son imagen y descripción"
@@ -89,6 +113,7 @@ const Articulos = () => {
         formData.append("descripcion", form.descripcion.value);
         formData.append("precio_compra", precio_compra);
         formData.append("precio_venta", precio_venta);
+        formData.append("codigo_barras", codigo_barras);
         if (isEdit) {
           formData.append("id", articulo.id);
         }
@@ -164,6 +189,10 @@ const Articulos = () => {
 
   return (
     <>
+      <BarcodeReader
+        onScan={handleBarcodeScan}
+        onError={(err) => console.error(err)}
+      />
       <div className="max-w-6xl mx-auto py-8 px-4">
         <Toaster richColors />
         <div className="flex justify-between items-center mb-4">
