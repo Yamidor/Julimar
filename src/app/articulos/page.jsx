@@ -10,27 +10,29 @@ const Articulos = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [articulos, setArticulos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [barcode, setBarcode] = useState("");
+  const [barcode, setBarcode] = useState(""); // Estado para el código de barras escaneado
   const articulosPerPage = 8;
+
+  // Función para manejar el escaneo de códigos de barras
+  const handleBarcodeScan = (data) => {
+    if (
+      !document.activeElement ||
+      !document.activeElement.id.includes("codigo_barras")
+    ) {
+      setBarcode(data);
+    }
+  };
+
+  // Función para manejar errores del lector de códigos de barras
+  const handleBarcodeError = (err) => {
+    console.error("Error al escanear código de barras:", err);
+  };
 
   const getNextCodigo = () => {
     if (articulos.length === 0) return "PRO-0001";
     const lastCodigo = articulos[articulos.length - 1].codigo;
     const number = parseInt(lastCodigo.split("-")[1]) + 1;
     return `PRO-${number.toString().padStart(4, "0")}`;
-  };
-
-  const handleBarcodeScan = (scannedBarcode) => {
-    const articulo = articulos.find(
-      (art) => art.codigo_barras === scannedBarcode
-    );
-    if (articulo) {
-      setBarcode(scannedBarcode);
-      addOrEditArticulo(articulo);
-    } else {
-      setBarcode(scannedBarcode);
-      addOrEditArticulo({ codigo_barras: scannedBarcode });
-    }
   };
 
   const addOrEditArticulo = (articulo = null) => {
@@ -83,13 +85,9 @@ const Articulos = () => {
               }">
             </div>
           </div>
-          <div>
+          <div class="mb-4">
             <label for="codigo_barras" class="block text-gray-700">Código de Barras</label>
-            <input type="text" id="codigo_barras" name="codigo_barras" class="w-full px-3 py-2 border rounded" value="${
-              articulo && articulo.codigo_barras
-                ? articulo.codigo_barras
-                : nextCodigo
-            }" readonly>
+            <input type="text" id="codigo_barras" name="codigo_barras" class="w-full px-3 py-2 border rounded" value="${barcode}" readOnly>
           </div>
         </form>
       `,
@@ -99,7 +97,8 @@ const Articulos = () => {
         const nombre = form.nombre.value;
         const precio_compra = form.precio_compra.value;
         const precio_venta = form.precio_venta.value;
-        const codigo_barras = form.codigo_barras.value;
+        const codigo_barras = form.codigo_barras.value; // Obtener valor de código de barras
+
         if (!codigo || !nombre || !precio_compra || !precio_venta) {
           MySwal.showValidationMessage(
             "Por favor completa todos los campos, los únicos que no son obligatorios son imagen y descripción"
@@ -113,7 +112,8 @@ const Articulos = () => {
         formData.append("descripcion", form.descripcion.value);
         formData.append("precio_compra", precio_compra);
         formData.append("precio_venta", precio_venta);
-        formData.append("codigo_barras", codigo_barras);
+        formData.append("codigo_barras", codigo_barras); // Agregar código de barras al formData
+
         if (isEdit) {
           formData.append("id", articulo.id);
         }
@@ -176,7 +176,6 @@ const Articulos = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    console.log(searchTerm);
   };
 
   const formatCurrency = (value) => {
@@ -189,12 +188,14 @@ const Articulos = () => {
 
   return (
     <>
-      <BarcodeReader
-        onScan={handleBarcodeScan}
-        onError={(err) => console.error(err)}
-      />
       <div className="max-w-6xl mx-auto py-8 px-4">
         <Toaster richColors />
+        <BarcodeReader
+          onError={handleBarcodeError}
+          onScan={handleBarcodeScan}
+          minLength={5}
+          autoFocus={false}
+        />
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold">Lista de productos</h1>
@@ -211,57 +212,68 @@ const Articulos = () => {
               onClick={() => addOrEditArticulo()}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              Agregar
+              Agregar Articulo
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {articulos
-            .slice(
-              currentPage * articulosPerPage,
-              (currentPage + 1) * articulosPerPage
-            )
-            .map((articulo) => (
-              <div
-                key={articulo.id}
-                className="p-4 border rounded-lg hover:bg-white hover:text-gray-600 cursor-pointer"
-                onClick={() => addOrEditArticulo(articulo)}
-              >
-                <img
-                  className="w-20 h-20 rounded-full mx-auto mb-4"
-                  src={
-                    articulo.imagen
-                      ? articulo.imagen
-                      : "/uploads/noproducto.jfif"
-                  }
-                />
-                <div className="text-center">
-                  <h2 className="text-lg font-semibold mb-2">
-                    {articulo.nombre}
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    Codigo: {articulo.codigo}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Precio venta: {formatCurrency(articulo.precio_venta)}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Precio compra: {formatCurrency(articulo.precio_compra)}
-                  </p>
-                </div>
-              </div>
-            ))}
-        </div>
-        <div className="mt-4 flex justify-center">
+        <table className="min-w-full bg-white">
+          <thead className="bg-gray-800 text-white">
+            <tr>
+              <th className="py-2 px-4">Codigo</th>
+              <th className="py-2 px-4">Nombre</th>
+              <th className="py-2 px-4">Descripcion</th>
+              <th className="py-2 px-4">Precio Compra</th>
+              <th className="py-2 px-4">Precio Venta</th>
+              <th className="py-2 px-4">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {articulos
+              .slice(
+                currentPage * articulosPerPage,
+                (currentPage + 1) * articulosPerPage
+              )
+              .map((articulo) => (
+                <tr key={articulo.id}>
+                  <td className="py-2 px-4">{articulo.codigo}</td>
+                  <td className="py-2 px-4">{articulo.nombre}</td>
+                  <td className="py-2 px-4">{articulo.descripcion}</td>
+                  <td className="py-2 px-4">
+                    {formatCurrency(articulo.precio_compra)}
+                  </td>
+                  <td className="py-2 px-4">
+                    {formatCurrency(articulo.precio_venta)}
+                  </td>
+                  <td className="py-2 px-4">
+                    <button
+                      onClick={() => addOrEditArticulo(articulo)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
+                    >
+                      Editar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+        <div className="mt-4">
           <button
             onClick={handleClickPrev}
-            className="mr-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className={`px-4 py-2 bg-gray-200 text-gray-800 rounded ${
+              currentPage === 0 ? "cursor-not-allowed" : "hover:bg-gray-300"
+            } mr-2`}
+            disabled={currentPage === 0}
           >
             Anterior
           </button>
           <button
             onClick={handleClickNext}
-            className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className={`px-4 py-2 bg-gray-200 text-gray-800 rounded ${
+              (currentPage + 1) * articulosPerPage >= articulos.length
+                ? "cursor-not-allowed"
+                : "hover:bg-gray-300"
+            }`}
+            disabled={(currentPage + 1) * articulosPerPage >= articulos.length}
           >
             Siguiente
           </button>
@@ -270,4 +282,5 @@ const Articulos = () => {
     </>
   );
 };
+
 export default Articulos;
