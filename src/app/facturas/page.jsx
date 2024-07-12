@@ -302,142 +302,133 @@ const Factura = () => {
           onError={(err) => console.error(err)}
         />
         <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold">Factura</h1>
-            <h2>{numeroFactura}</h2>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="text"
-              className="border text-black border-gray-300 px-3 py-2 mr-2"
-              placeholder="Buscar producto por código o nombre..."
-              value={busqueda}
-              onChange={handleBuscar}
-            />
-          </div>
+          <h1 className="text-3xl font-bold">Facturación</h1>
+          <button
+            onClick={generarPDF}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Generar PDF
+          </button>
         </div>
         <div className="mb-4">
-          <h2 className="text-xl font-bold">Cliente</h2>
-          <div className="flex space-x-4">
-            <input
-              type="text"
-              className="border text-black border-gray-300 px-3 py-2"
-              placeholder="Nombre del Cliente"
-              value={cliente.nombre_cliente}
-              onChange={(e) =>
-                setCliente({ ...cliente, nombre_cliente: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              className="border text-black border-gray-300 px-3 py-2"
-              placeholder="DNI del Cliente"
-              value={cliente.dni_cliente}
-              onChange={(e) =>
-                setCliente({ ...cliente, dni_cliente: e.target.value })
-              }
-            />
-            <select
-              className="border text-black border-gray-300 px-3 py-2"
-              value={cliente.tipo_cliente}
-              onChange={(e) =>
-                setCliente({ ...cliente, tipo_cliente: e.target.value })
-              }
-            >
-              <option value="Normal">Normal</option>
-              <option value="VIP">VIP</option>
-              <option value="Empresa">Empresa</option>
-            </select>
-          </div>
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Nombre del Cliente
+          </label>
+          <input
+            type="text"
+            value={cliente.nombre_cliente}
+            onChange={(e) =>
+              setCliente({ ...cliente, nombre_cliente: e.target.value })
+            }
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Nombre del Cliente"
+          />
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <div style={{ width: "45%" }}>
-            <h2>Productos</h2>
-            <ul>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            DNI del Cliente
+          </label>
+          <input
+            type="text"
+            value={cliente.dni_cliente}
+            onChange={(e) =>
+              setCliente({ ...cliente, dni_cliente: e.target.value })
+            }
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="DNI del Cliente"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Tipo de Cliente
+          </label>
+          <select
+            value={cliente.tipo_cliente}
+            onChange={(e) =>
+              setCliente({ ...cliente, tipo_cliente: e.target.value })
+            }
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          >
+            <option value="Normal">Normal</option>
+            <option value="Exento de IVA">Exento de IVA</option>
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Buscar Producto
+          </label>
+          <input
+            type="text"
+            value={busqueda}
+            onChange={handleBuscar}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Buscar por código o nombre"
+          />
+        </div>
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="lg:w-1/2">
+            <h2 className="text-xl font-bold mb-2">Productos</h2>
+            <ul className="overflow-y-auto h-96 border p-4">
               {productosFiltrados.map((producto) => (
                 <li
                   key={producto.codigo}
-                  className="mb-2 flex justify-between items-center"
+                  className="flex justify-between items-center mb-2 p-2 border rounded hover:bg-gray-100 cursor-pointer"
+                  onClick={() => agregarProducto(producto)}
                 >
-                  <span className="flex items-center">
-                    <img
-                      src={producto.imagen}
-                      alt={producto.nombre}
-                      className="w-10 h-10 rounded-full mr-2"
-                    />
-                    {producto.nombre} - {formatCurrency(producto.precio_venta)}
-                  </span>
-                  <button
-                    onClick={() => agregarProducto(producto)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ml-4"
-                  >
-                    Agregar
-                  </button>
+                  <span>{producto.nombre}</span>
+                  <span>{formatCurrency(producto.precio_venta)}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <div style={{ width: "45%" }}>
-            <h2>Factura {numeroFactura}</h2>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th className="border p-2">Código</th>
-                  <th className="border p-2">Nombre</th>
-                  <th className="border p-2">Cantidad</th>
-                  <th className="border p-2">Precio de Venta</th>
-                  <th className="border p-2">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {factura.map((item) => (
-                  <tr key={item.codigo}>
-                    <td className="border p-2">{item.codigo}</td>
-                    <td className="border p-2">{item.nombre}</td>
-                    <td className="border p-2">
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => decrementarCantidad(item.codigo)}
-                          className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                        >
-                          -
-                        </button>
-                        <span className="mx-2">{item.cantidad}</span>
-                        <button
-                          onClick={() => incrementarCantidad(item.codigo)}
-                          className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
-                    <td className="border p-2">
-                      {formatCurrency(item.precio_venta)}
-                    </td>
-                    <td className="border p-2">{formatCurrency(item.total)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <h3 className="mt-4 text-lg font-bold">
-              Sub-Total: {formatCurrency(calcularSubTotal())}
-            </h3>
-            <h3 className="mt-4 text-lg font-bold">
-              Impuesto: {formatCurrency(calcularImpuesto())}
-            </h3>
-            <h3 className="mt-4 text-lg font-bold">
-              Total: {formatCurrency(calcularTotal())}
-            </h3>
-            <div className="flex">
-              <button
-                onClick={generarPDF}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
-              >
-                Generar Factura
-              </button>
+          <div className="lg:w-1/2">
+            <h2 className="text-xl font-bold mb-2">Factura</h2>
+            <ul className="overflow-y-auto h-96 border p-4">
+              {factura.map((item) => (
+                <li
+                  key={item.codigo}
+                  className="flex justify-between items-center mb-2 p-2 border rounded"
+                >
+                  <div>
+                    <span className="font-bold">{item.nombre}</span>
+                    <div className="text-sm text-gray-600">
+                      {formatCurrency(item.precio_venta)} x {item.cantidad}
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => decrementarCantidad(item.codigo)}
+                      className="bg-red-500 text-white px-2 py-1 rounded-l"
+                    >
+                      -
+                    </button>
+                    <span className="px-2">{item.cantidad}</span>
+                    <button
+                      onClick={() => incrementarCantidad(item.codigo)}
+                      className="bg-green-500 text-white px-2 py-1 rounded-r"
+                    >
+                      +
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 p-4 border rounded">
+              <div className="flex justify-between mb-2">
+                <span className="font-bold">Sub-Total:</span>
+                <span>{formatCurrency(calcularSubTotal())}</span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span className="font-bold">Impuesto:</span>
+                <span>{formatCurrency(calcularImpuesto())}</span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span className="font-bold">Total:</span>
+                <span>{formatCurrency(calcularTotal())}</span>
+              </div>
               <button
                 onClick={handlePagar}
-                className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >
                 Pagar
               </button>
