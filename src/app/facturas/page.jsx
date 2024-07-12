@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import BarcodeReader from "react-barcode-reader";
 
 const MySwal = withReactContent(Swal);
 
@@ -280,10 +281,26 @@ const Factura = () => {
       producto.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const handleBarcodeScan = (scannedBarcode) => {
+    const producto = productos.find(
+      (prod) => prod.codigo_barras === scannedBarcode
+    );
+    if (producto) {
+      agregarProducto(producto);
+      toast.success("Producto agregado a la factura.");
+    } else {
+      toast.error("Producto no encontrado.");
+    }
+  };
+
   return (
     <>
       <div className="max-w-6xl mx-auto py-8 px-4">
         <Toaster richColors />
+        <BarcodeReader
+          onScan={handleBarcodeScan}
+          onError={(err) => console.error(err)}
+        />
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold">Factura</h1>

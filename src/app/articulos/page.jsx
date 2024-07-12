@@ -25,10 +25,11 @@ const Articulos = () => {
       (art) => art.codigo_barras === scannedBarcode
     );
     if (articulo) {
-      addOrEditArticulo(articulo); // Llama a addOrEditArticulo con el artículo encontrado
+      setBarcode(scannedBarcode);
+      addOrEditArticulo(articulo);
     } else {
-      // Si no se encuentra, puedes manejarlo según tu lógica, por ejemplo, mostrar un mensaje de error
-      toast.error("El código de barras escaneado no está registrado.");
+      setBarcode(scannedBarcode);
+      addOrEditArticulo({ codigo_barras: scannedBarcode });
     }
   };
 
